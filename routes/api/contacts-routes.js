@@ -6,6 +6,15 @@ import { httpError } from "../../helpers/index.js";
 const router = express.Router()
 
 const addSchema = Joi.object({
+  name: Joi.string().required()
+    .messages({ "any.required": "Missing required name field" }),
+  email: Joi.string().required()
+    .messages({ "any.required": "Missing required email field" }),
+  phone: Joi.string().required()
+    .messages({ "any.required": "Missing required phone field" }),
+});
+
+const addSchemaUpd = Joi.object({
   name: Joi.string()
     .messages({ "any.required": "Missing required name field" }),
   email: Joi.string()
@@ -74,7 +83,7 @@ router.delete('/:contactId', async (req, res, next) => {
 
 router.put('/:contactId', async (req, res, next) => {
      try {
-        const {error} = addSchema.validate(req.body);
+        const {error} = addSchemaUpd.validate(req.body);
         if(error) {
             throw httpError(400, error.message);
         }
