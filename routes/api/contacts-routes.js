@@ -1,104 +1,27 @@
 import express from "express";
-import Joi from "joi";
-import contactService from "../../models/contacts.js";
-import { httpError } from "../../helpers/index.js";
 
-const router = express.Router()
+import contactsController from "../../controllers/contacts-controller.js";
+import * as contactSchemas from "../../models/contacts.js";
+import {validateBody} from "../../decorators/index.js";
+import {isValidId} from "../../middlewares/index.js";
 
-const addSchema = Joi.object({
-  name: Joi.string().required()
-    .messages({ "any.required": "Missing required name field" }),
-  email: Joi.string().required()
-    .messages({ "any.required": "Missing required email field" }),
-  phone: Joi.string().required()
-    .messages({ "any.required": "Missing required phone field" }),
-});
+const contactAddValidate = validateBody(contactSchemas.addContactSchema);
+const contactUpdateFavoriteValidate = validateBody(contactSchemas.updateFavoriteContactSchema);
+const contactUpdateValidate = validateBody(contactSchemas.updateContactSchema)
 
-const addSchemaUpd = Joi.object({
-  name: Joi.string()
-    .messages({ "any.required": "Missing required name field" }),
-  email: Joi.string()
-    .messages({ "any.required": "Missing required email field" }),
-  phone: Joi.string()
-    .messages({ "any.required": "Missing required phone field" }),
-});
+const contactRouter = express.Router()
 
-router.get('/', async (req, res, next) => {
-  try {
-     const result = await contactService.listContacts()
-     res.json(result)
-  } catch (error) {
-      next(error)
-  }
-})
+contactRouter.get("/", contactsController.listContacts);
 
-router.get('/:contactId', async (req, res, next) => {
-    try {
-       console.log(req.params)
-        const {contactId} = req.params;
-        const result = await contactService.getContactById(contactId);
-     if (!result) {
-       throw httpError(404, `Movie with id=${contactId} not found`);
-     }
-        res.json(result);
-    }
-    catch(error) {
-        next(error);
-    }
-})
+contactRouter.get("/:contactId", isValidId, contactsController.getContactById);
 
-router.post('/', async (req, res, next) => {
-  try {
-      const { error } = addSchema.validate(req.body);
-     
-      if (error) {
-            throw httpError(400, error.message);
-        }
-      const result = await contactService.addContact(req.body);
-       
-        res.status(201).json(result);
-    }
-  catch (error) {
-      
-        next(error);
-    }
-})
+contactRouter.post("/", contactAddValidate, contactsController.addContact);
 
-router.delete('/:contactId', async (req, res, next) => {
-   try {
-        const {contactId} = req.params;
-       const result = await contactService.removeContact(contactId);
-       
-        if(!result) {
-            throw httpError(404, `Movie with id=${contactId} not found`);
-        }
-        res.json({
-            message: "Delete success"
-        })
-    }
-    catch(error) {
-        next(error);
-    }
-})
+contactRouter.put("/:contactId", isValidId, contactUpdateValidate, contactsController.updateContact);
 
-router.put('/:contactId', async (req, res, next) => {
-     try {
-        const {error} = addSchemaUpd.validate(req.body);
-        if(error) {
-            throw httpError(400, error.message);
-        }
-        const {contactId} = req.params;
-        const result = await contactService.updateContact(contactId, req.body);
-        if(!result) {
-            throw httpError(404, `Movie with id=${contactId} not found`);
-        }
+contactRouter.patch("/:contactId/favorite", isValidId, contactUpdateFavoriteValidate, contactsController.updateStatusContact);
 
-        res.json(result);
-    }
-    catch(error) {
-        next(error);
-    }
-})
+contactRouter.delete("/:contactId", isValidId, contactsController.removeContact);
 
-export default router
+export default contactRouter;
 
