@@ -12,7 +12,7 @@ const contactUpdateValidate = validateBody(contactSchemas.updateContactSchema)
 const contactRouter = express.Router()
 
 
-moviesRouter.use(authenticate);
+contactRouter.use(authenticate);
 
 contactRouter.get("/", contactsController.listContacts);
 
