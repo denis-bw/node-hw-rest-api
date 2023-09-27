@@ -17,6 +17,10 @@ const contactShema = new Schema({
     type: Boolean,
     default: false,
   },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+  }
 }, {versionKey: false, timestamps: true});
 
 contactShema.post("save", handleSaveError);
@@ -32,6 +36,10 @@ export const addContactSchema = Joi.object({
     .messages({ "any.required": "Missing required email field" }),
   phone: Joi.string().required()
     .messages({ "any.required": "Missing required phone field" }),
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+  }
 });
 
 export const updateContactSchema= Joi.object({
@@ -43,6 +51,10 @@ export const updateContactSchema= Joi.object({
     .messages({ "any.required": "Missing required phone field" }),
   favorite: Joi.boolean()
     .messages({ "any.required": "Missing required favorite field" }),
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+  }
 });
 
 export const updateFavoriteContactSchema= Joi.object({
