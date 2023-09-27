@@ -64,7 +64,7 @@ const getCurrent = (req, res) => {
 
 const signout = async (req, res) => {
     const { _id } = req.user;
-    console.log(req, req.user)
+    
     await User.findByIdAndUpdate(_id, { token: "" });
 
     res.json({
