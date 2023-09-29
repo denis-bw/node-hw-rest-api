@@ -23,7 +23,10 @@ const userSchema = new Schema({
     enum: ["starter", "pro", "business"],
     default: "starter"
   },
-  token: String
+  token: String,
+  avatarURL: {
+    type: String,
+  }
 }, {versionKey: false, timestamps: true})
 
 userSchema.post("save", handleSaveError);
@@ -32,16 +35,18 @@ userSchema.pre("findOneAndUpdate", runValidateAtUpdate);
 
 userSchema.post("findOneAndUpdate", handleSaveError);
 
+
 export const userSignupSchema = Joi.object({
-    username: Joi.string().required(),
-    email: Joi.string().required(),
-    password: Joi.string().required(),
+  username: Joi.string().required(),
+  email: Joi.string().required(),
+  password: Joi.string().required(),
 })
 
 export const userSigninSchema = Joi.object({
-    email: Joi.string().required(),
-    password: Joi.string().required(),
+  email: Joi.string().required(),
+  password: Joi.string().required(),
 })
+
 
 const User = model("user", userSchema);
 
