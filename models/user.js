@@ -26,13 +26,18 @@ const userSchema = new Schema({
   token: String,
   avatarURL: {
     type: String,
-  }
+  },
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+  },
 }, {versionKey: false, timestamps: true})
 
 userSchema.post("save", handleSaveError);
-
 userSchema.pre("findOneAndUpdate", runValidateAtUpdate);
-
 userSchema.post("findOneAndUpdate", handleSaveError);
 
 
@@ -47,6 +52,9 @@ export const userSigninSchema = Joi.object({
   password: Joi.string().required(),
 })
 
+export const userEmailSchema = Joi.object({
+  email: Joi.string().required()
+})
 
 const User = model("user", userSchema);
 
