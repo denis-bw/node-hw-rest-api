@@ -2,12 +2,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import 'dotenv/config'
 import User from "../models/user.js";
+import gravatar from "gravatar";
+import path from "path";
+import fs from "fs/promises"
+import Jimp from "jimp";
 
 import { httpError } from "../helpers/index.js";
 
 import { ctrlWrapper } from "../decorators/index.js";
 
 const { JWT_SECRET } = process.env;
+
+const avatarPath = path.resolve("public", "avatars")
 
 const signup = async (req, res) => {
     const { email, password } = req.body;
@@ -18,8 +24,8 @@ const signup = async (req, res) => {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({ ...req.body, password: hashPassword }); 
+    const unsecureUrl = gravatar.url(email, {protocol: 'http', s: '100'});
+    const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL: unsecureUrl }); 
  
     res.status(201).json({
         username: newUser.username,
@@ -47,7 +53,7 @@ const signin = async (req, res) => {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "23h" });
     await User.findByIdAndUpdate(id, { token });
-    console.log(token,"token")
+    
     res.json({
         token,
     })
@@ -72,9 +78,34 @@ const signout = async (req, res) => {
     })
 }
 
+const updateAvatar = async (req, res) => {
+    const { _id } = req.user;
+    
+    const { path: oldPath, filename } = req.file;
+    console.log(req.user)
+    const newPath = path.join(avatarPath, filename)
+
+    
+    await fs.rename(oldPath, newPath)
+    const avatar = path.join("public", "avatars", filename)
+    console.log(avatar)
+  
+     const img = await  Jimp.read(avatar)
+        img.resize(250,250)
+        img.write(`public/avatars/${filename}`)
+    
+
+    const resultUpdate = await User.findOneAndUpdate(_id, {avatarURL: `/avatars/${filename}`});
+    res.status(200).json({
+        message: "ok",
+        avatarURL: resultUpdate.avatarURL,
+    })
+}
+
 export default {
     signup: ctrlWrapper(signup),
     signin: ctrlWrapper(signin),
     getCurrent: ctrlWrapper(getCurrent),
     signout: ctrlWrapper(signout),
+    updateAvatar: ctrlWrapper(updateAvatar)
 }
